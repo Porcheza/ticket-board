@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15.3
+    restart: always
+    environment:
+      - POSTGRES_USER=devuser
+      - POSTGRES_PASSWORD=P@ssw0rd123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_volume:/var/lib/postgresql/data
+      - ./ticket_db.sql:/docker-entrypoint-initdb.d/ticket_db.sql
+
+  backend:
+    build:
+      context: ./backend
+    depends_on:
+      - postgres
+    working_dir: /app/backend
+    volumes:
+      - ./backend:/app/backend
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=devuser
+      - POSTGRES_PASSWORD=P@ssw0rd123
+      - POSTGRES_DATABASE=ticket_board
+    ports:
+      - "3002:3000"
+    command: ["bash", "-c", "npm install && npm run start:debug"]
+
+volumes:
+  postgres_volume:
+    driver: local
