@@ -12,6 +12,8 @@ services:
     volumes:
       - postgres_volume:/var/lib/postgresql/data
       - ./ticket_db.sql:/docker-entrypoint-initdb.d/ticket_db.sql
+    networks:
+      - backend
 
   backend:
     build:
@@ -30,6 +32,9 @@ services:
     ports:
       - "3002:3002"
     command: ["bash", "-c", "npm install && npm run start:debug"]
+    networks:
+      - frontend
+      - backend
 
   frontend:
     build:
@@ -39,9 +44,17 @@ services:
       - ./frontend:/app/frontend
     environment:
       - VITE_BASE_API_URL=http://localhost:3002
-    command: ["bash", "-c", "npm install && npm run dev"]
     ports:
       - "8082:8082"
+    command: ["bash", "-c", "npm install && npm run dev"]
+    networks:
+      - frontend
+    
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
 
 volumes:
   postgres_volume:
